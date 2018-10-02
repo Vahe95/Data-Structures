@@ -1,8 +1,7 @@
 #ifndef Array_h__
 #define Array_h__
 
-#include <string>
-#include <iostream>
+#include <array>
 
 template<class T, size_t N>
 class Array
@@ -38,7 +37,7 @@ public:
 
 	constexpr bool empty() const noexcept
 	{
-		return begin() == end();
+		return m_size == 0;
 	}
 
 	const T& operator[](const int index) const
@@ -111,22 +110,24 @@ public:
 	}
 
 private:
+	bool isFull()
+	{
+		return m_size == m_capacity;
+	}
+
 	void outOfRangeError()
 	{
-		std::string exception = std::string("Index is Out of Range");
-		throw std::out_of_range(exception);
+		throw std::out_of_range("Index is Out of Range");
 	}
 
 	void overflowError()
 	{
-		std::string exception = std::string("Array is Full!");
-		throw std::overflow_error(exception);
+		throw std::overflow_error("Array is Full!");
 	}
 
 	void underflowError()
 	{
-		std::string exception = std::string("Array is Empty!");
-		throw std::underflow_error(exception);
+		throw std::underflow_error("Array is Empty!");
 	}
 
 private:

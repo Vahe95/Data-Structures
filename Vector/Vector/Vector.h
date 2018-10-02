@@ -8,14 +8,14 @@ public:
 	typedef T* iterator;
 
 public:
-	explicit Vector() noexcept
+	Vector()
 		: m_capacity(0)
 		, m_size(0)
 		, m_data(new T[m_capacity])
 	{
 	}
 
-	explicit Vector(size_t count, const T& value = 0)
+	Vector(size_t count, const T& value = T())
 		: m_capacity(count)
 		, m_size(0)
 		, m_data(new T[m_capacity])
@@ -27,6 +27,14 @@ public:
 		}
 	}
 
+	Vector(std::initializer_list<T> init)
+		: m_capacity(init.size())
+		, m_size(init.size())
+		, m_data(new T[init.size()])
+	{
+		std::copy(init.begin(), init.end(), m_data);
+	}
+
 	Vector(const Vector<T>& other)
 		: m_capacity(other.m_capacity)
 		, m_size(other.m_size)
@@ -35,7 +43,7 @@ public:
 		copyElements(other.m_data, m_data, m_size);
 	}
 
-	Vector<T>& operator=(const Vector<T>& other)
+	Vector& operator=(const Vector<T>& other)
 	{
 		T* const tmp = new T[other.m_capacity];
 
@@ -50,7 +58,29 @@ public:
 		return *this;
 	}
 
-	~Vector()
+	Vector(Vector<T>&& right)
+		: m_capacity(std::move(right.m_capacity))
+		, m_size(std::move(right.m_size))
+		, m_data(std::move(right.m_data))
+	{
+		right.m_size = 0;
+		right.m_data = nullptr;
+	}
+
+	Vector& operator=(Vector<T>&& right)
+	{
+		m_capacity = right.m_capacity;
+		m_size = right.m_size;
+		m_data = std::move(right.m_data);
+
+		right.m_capacity = 0;
+		right.m_size = 0;
+		right.m_data = nullptr;
+
+		return *this;
+	}
+
+	~Vector() noexcept
 	{
 		delete[] m_data;
 	}
@@ -65,6 +95,16 @@ public:
 		return m_data + m_size;
 	}
 
+	iterator rbegin() const noexcept
+	{
+		return m_data + m_size;
+	}
+
+	iterator rend() const noexcept
+	{
+		return m_data;
+	}
+
 	T& front()
 	{
 		return *begin();
@@ -75,7 +115,7 @@ public:
 		return *(end() - 1);
 	}
 
-	T& at(size_t position)
+	T& at(const size_t position)
 	{
 		if (!(position >= 0 && position < m_size))
 		{
@@ -187,7 +227,7 @@ private:
 			to[i] = from[i];
 		}
 	}
-
+	
 	bool isReolocationNecessoryForLessMemory()
 	{
 		return m_size <= m_capacity / 2;
