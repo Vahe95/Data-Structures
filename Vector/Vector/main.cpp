@@ -1,7 +1,4 @@
 #include <iostream>
-#include "Vector.h"
-
-#include <string>
 
 int main()
 {

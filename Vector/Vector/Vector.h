@@ -15,7 +15,7 @@ public:
 
 public:
 	Vector() noexcept
-		: m_capacity(0)
+		: m_capacity(5)
 		, m_size(0)
 		, m_data(new T[m_capacity]())
 	{
@@ -237,7 +237,7 @@ public:
 		--m_size;
 	}
 
-	iterator insert(const_iterator position, const T& element)
+	iterator insert(iterator position, const T& element)
 	{
 		if (size() == m_capacity)
 		{
@@ -256,7 +256,7 @@ public:
 		return position;
 	}
 
-	iterator erase(const_iterator position)
+	iterator erase(iterator position)
 	{
 		if (empty())
 		{
