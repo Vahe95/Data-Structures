@@ -1,11 +1,13 @@
 #ifndef List_h__
 #define List_h__
 
-#include <string>
-
 template<class T>
 class List
 {
+private:
+	using reference = T&;
+	using const_reference = const T&;
+
 private:
 	struct Node
 	{
@@ -13,356 +15,280 @@ private:
 		Node* m_prev;
 		Node* m_next;
 
-		Node(const T& data = T(), Node* prev = nullptr, Node* next = nullptr);
+		Node(const T& data = T(), Node* prev = nullptr, Node* next = nullptr)
+			: m_data(data)
+			, m_prev(prev)
+			, m_next(next)
+		{
+		}
 	};
 
 	class iterator
 	{
-	private:
-		Node* m_current;
-
 	public:
-		explicit iterator(Node* const current);
+		explicit iterator(Node* const current)
+			: m_current(current)
+		{
+		}
 
 		friend class List;
 
-		T& operator*();
+		reference operator*()
+		{
+			return m_current->m_data;
+		}
 
-		iterator operator=(const iterator rhs);
+		iterator operator=(const iterator rhs)
+		{
+			m_current = rhs.m_current;
+			return *this;
+		}
 
-		bool operator==(const iterator& rhs);
-		bool operator!=(const iterator& rhs);
+		bool operator==(const iterator& rhs)
+		{
+			return rhs.m_current == m_current;
+		}
 
-		iterator operator++();
-		iterator operator--();
+		bool operator!=(const iterator& rhs)
+		{
+			return !(operator==(rhs));
+		}
+
+		iterator operator++()
+		{
+			m_current = m_current->m_next;
+			return *this;
+		}
+
+		iterator operator--()
+		{
+			m_current = m_current->m_prev;
+			return *this;
+		}
+
+	private:
+		Node* m_current;
 	};
 
 	class const_iterator
 	{
+	public:
+		const_iterator(const Node* const current)
+			: m_current(current)
+		{
+		}
+
+		const T& operator*()
+		{
+			return m_current->m_data;
+		}
+
+		const_iterator operator=(const const_iterator rhs)
+		{
+			m_current = rhs.m_current;
+			return *this;
+		}
+
+		bool operator==(const const_iterator& rhs)
+		{
+			return rhs.m_current == m_current;
+		}
+
+		bool operator!=(const const_iterator& rhs)
+		{
+			return !(operator==(rhs));
+		}
+
+		const_iterator operator++()
+		{
+			m_current = m_current->m_next;
+			return *this;
+		}
+
+		const_iterator operator--()
+		{
+			m_current = m_current->m_prev;
+			return *this;
+		}
+
 	private:
 		const Node* m_current;
-
-	public:
-		const_iterator(const Node* const current);
-
-		const T& operator*();
-
-		const_iterator operator=(const const_iterator rhs);
-
-		bool operator==(const const_iterator& rhs);
-		bool operator!=(const const_iterator& rhs);
-
-		const_iterator operator++();
-		const_iterator operator--();
-
 	};
+
+public:
+	List()
+		:m_size(0)
+	{
+		m_head.m_next = &m_tail;
+		m_tail.m_prev = &m_head;
+	}
+
+	List(const List& other)
+		: List()
+	{
+		for (auto it = other.cbegin(); it != other.cend(); ++it)
+		{
+			pushBack(*it);
+		}
+	}
+
+	List& operator=(const List& other)
+	{
+		while (m_size > 0)
+		{
+			popBack();
+		}
+
+		for (auto it = other.cbegin(); it != other.cend(); ++it)
+		{
+			pushBack(*it);
+		}
+
+		return *this;
+	}
+
+	~List()
+	{
+		while (m_size > 0)
+		{
+			popBack();
+		}
+	}
+
+	iterator begin() noexcept
+	{
+		return iterator(m_head.m_next);
+	}
+
+	const_iterator begin() const noexcept
+	{
+		return const_iterator(m_head.m_next);
+	}
+
+	const_iterator cbegin() const noexcept
+	{
+		return begin();
+	}
+
+	iterator end() noexcept
+	{
+		return iterator(&m_tail);
+	}
+
+	const_iterator end() const noexcept
+	{
+		return const_iterator(&m_tail);
+	}
+
+	const_iterator cend() const noexcept
+	{
+		return end();
+	}
+
+	reference front()
+	{
+		return m_head.m_next->m_data;
+	}
+
+	const_reference front() const
+	{
+		return m_head.m_next->m_data;
+	}
+
+	reference back()
+	{
+		return m_tail.m_prev->m_data;
+	}
+
+	const_reference back() const
+	{
+		return m_tail.m_prev->m_data;
+	}
+
+	void pushBack(const T& element)
+	{
+		insert(end(), element);
+	}
+
+	void popBack()
+	{
+		if (empty())
+		{
+			underflowError();
+		}
+
+		erase(--end());
+	}
+
+	void pushFront(const T& element)
+	{
+		insert(begin(), element);
+	}
+
+	void popFront()
+	{
+		if (empty())
+		{
+			underflowError();
+		}
+
+		erase(begin());
+	}
+
+	iterator insert(iterator position, const T& element)
+	{
+		Node* next = position.m_current;
+		Node* prev = position.m_current->m_prev;
+
+		Node* newNode = new Node(element, prev, next);
+
+		next->m_prev = newNode;
+		prev->m_next = newNode;
+
+		++m_size;
+
+		return iterator(newNode);
+	}
+
+	iterator erase(iterator position)
+	{
+		if (empty())
+		{
+			underflowError();
+		}
+
+		position.m_current->m_prev->m_next = position.m_current->m_next;
+		position.m_current->m_next->m_prev = position.m_current->m_prev;
+
+		iterator i = position;
+
+		delete position.m_current;
+
+		--m_size;
+
+		return iterator(i.m_current->m_next);
+	}
+
+	size_t size() const noexcept
+	{
+		return m_size;
+	}
+
+	bool empty() const noexcept
+	{
+		return m_size == 0;
+	}
+
+private:
+	void underflowError()
+	{
+		throw std::underflow_error("Stack is Empty!");
+	}
 
 private:
 	Node m_head;
 	Node m_tail;
-	int m_size;
-
-public:
-	List();
-	List(const List& other);
-	List& operator=(const List& other);
-
-	int size();
-
-	bool isEmpty();
-
-	iterator begin();
-	iterator end();
-
-	const_iterator cbegin() const;
-	const_iterator cend() const;
-
-	T& front();
-	T& back();
-
-	void pushBack(const T& element);
-	void popBack();
-
-	void pushFront(const T& element);
-	void popFront();
-
-	iterator insert(const iterator position, const T& element);
-	iterator erase(const iterator position);
-
-	~List();
-
-private:
-	void underflowError();
-
+	size_t m_size;
 };
-
-template<class T>
-List<T>::List()
-	: m_size(0)
-{
-	m_head.m_next = &m_tail;
-	m_tail.m_prev = &m_head;
-}
-
-template<class T>
-List<T>::List(const List<T>& other)
-	: List()
-{
-	for (auto it = other.cbegin(); it != other.cend(); ++it)
-	{
-		pushBack(*it);
-	}
-}
-
-template<class T>
-List<T>& List<T>::operator=(const List<T>& other)
-{
-	while (m_size > 0)
-	{
-		popBack();
-	}
-
-	for (auto it = other.cbegin(); it != other.cend(); ++it)
-	{
-		pushBack(*it);
-	}
-
-	return *this;
-}
-
-template<class T>
-int List<T>::size()
-{
-	return m_size;
-}
-
-template<class T>
-bool List<T>::isEmpty()
-{
-	return m_size == 0;
-}
-
-template<class T>
-typename List<T>::iterator List<T>::begin()
-{
-	return iterator(m_head.m_next);
-}
-
-template<class T>
-typename List<T>::iterator List<T>::end()
-{
-	return iterator(&m_tail);
-}
-
-template<class T>
-typename List<T>::const_iterator List<T>::cbegin() const
-{
-	return const_iterator(m_head.m_next);
-}
-
-template<class T>
-typename List<T>::const_iterator List<T>::cend() const
-{
-	return const_iterator(&m_tail);
-}
-
-template<class T>
-T& List<T>::front()
-{
-	return m_head.m_next->m_data;
-}
-
-template<class T>
-T& List<T>::back()
-{
-	return m_tail.m_prev->m_data;
-}
-
-template<class T>
-void List<T>::pushBack(const T& element)
-{
-	insert(end(), element);
-}
-
-template<class T>
-void List<T>::popBack()
-{
-	if (isEmpty())
-	{
-		underflowError();
-	}
-
-	erase(--end());
-}
-
-template<class T>
-void List<T>::pushFront(const T& element)
-{
-	insert(begin(), element);
-}
-
-template<class T>
-void List<T>::popFront()
-{
-	if (isEmpty())
-	{
-		underflowError();
-	}
-
-	erase(begin());
-}
-
-template<class T>
-typename List<T>::iterator List<T>::insert(const iterator position, const T& element)
-{
-	Node* next = position.m_current;
-	Node* prev = position.m_current->m_prev;
-
-	Node* newNode = new Node(element, prev, next);
-
-	next->m_prev = newNode;
-	prev->m_next = newNode;
-
-	++m_size;
-
-	return iterator(newNode);
-}
-
-template<class T>
-typename List<T>::iterator List<T>::erase(const iterator position)
-{
-	if (isEmpty())
-	{
-		underflowError();
-	}
-
-	position.m_current->m_prev->m_next = position.m_current->m_next;
-	position.m_current->m_next->m_prev = position.m_current->m_prev;
-
-	iterator i = position;
-
-	delete position.m_current;
-
-	--m_size;
-
-	return iterator(i.m_current->m_next);
-}
-
-template<class T>
-List<T>::~List()
-{
-	while (m_size > 0)
-	{
-		popBack();
-	}
-}
-
-template<class T>
-List<T>::Node::Node(const T& data /*= T()*/, Node* prev /*= nullptr*/, Node* next /*= nullptr*/)
-	: m_data(data)
-	, m_prev(prev)
-	, m_next(next)
-{
-
-}
-
-template<class T>
-List<T>::iterator::iterator(Node* const current)
-	: m_current(current)
-{
-
-}
-
-template<class T>
-T& List<T>::iterator::operator*()
-{
-	return m_current->m_data;
-}
-
-template<class T>
-typename List<T>::iterator List<T>::iterator::operator=(const iterator rhs)
-{
-	m_current = rhs.m_current;
-	return *this;
-}
-
-template<class T>
-bool List<T>::iterator::operator==(const iterator& rhs)
-{
-	return rhs.m_current == m_current;
-}
-
-template<class T>
-bool List<T>::iterator::operator!=(const iterator& rhs)
-{
-	return !(operator==(rhs));
-}
-
-template<class T>
-typename List<T>::iterator List<T>::iterator::operator++()
-{
-	m_current = m_current->m_next;
-	return *this;
-}
-
-template<class T>
-typename List<T>::iterator List<T>::iterator::operator--()
-{
-	m_current = m_current->m_prev;
-	return *this;
-}
-
-template<class T>
-List<T>::const_iterator::const_iterator(const Node* const current)
-	: m_current(current)
-{
-
-}
-
-template<class T>
-const T& List<T>::const_iterator::operator*()
-{
-	return m_current->m_data;
-}
-
-template<class T>
-typename List<T>::const_iterator List<T>::const_iterator::operator=(const const_iterator rhs)
-{
-	m_current = rhs.m_current;
-	return *this;
-}
-
-template<class T>
-bool List<T>::const_iterator::operator==(const const_iterator& rhs)
-{
-	return rhs.m_current == m_current;
-}
-
-template<class T>
-bool List<T>::const_iterator::operator!=(const const_iterator& rhs)
-{
-	return !(operator==(rhs));
-}
-
-template<class T>
-typename List<T>::const_iterator List<T>::const_iterator::operator++()
-{
-	m_current = m_current->m_next;
-	return *this;
-}
-
-template<class T>
-typename List<T>::const_iterator List<T>::const_iterator::operator--()
-{
-	m_current = m_current->m_prev;
-	return *this;
-}
-
-template<class T>
-void List<T>::underflowError()
-{
-	std::string exception = std::string("Stack is Empty!");
-	throw std::underflow_error(exception);
-}
 
 #endif // List_h__
