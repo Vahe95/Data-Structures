@@ -5,26 +5,35 @@ template<class T>
 class Vector
 {
 public:
-	typedef T* iterator;
+	using iterator = T*;
+	using const_iterator = const T*;
+	using reverse_iterator = iterator;
+	using const_reverse_iterator = const_iterator;
+
+	using reference = T&;
+	using const_reference = const T&;
 
 public:
-	Vector()
+	Vector() noexcept
 		: m_capacity(0)
 		, m_size(0)
-		, m_data(new T[m_capacity])
+		, m_data(new T[m_capacity]())
 	{
 	}
 
-	Vector(size_t count, const T& value = T())
+	explicit Vector(size_t count)
 		: m_capacity(count)
-		, m_size(0)
+		, m_size(count)
+		, m_data(new T[m_capacity]())
+	{
+	}
+
+	Vector(const size_t count, const T& value)
+		: m_capacity(count)
+		, m_size(count)
 		, m_data(new T[m_capacity])
 	{
-		while (count > 0)
-		{
-			pushBack(value);
-			--count;
-		}
+		std::fill_n(m_data, count, value);
 	}
 
 	Vector(std::initializer_list<T> init)
@@ -45,7 +54,7 @@ public:
 
 	Vector& operator=(const Vector<T>& other)
 	{
-		T* const tmp = new T[other.m_capacity];
+		iterator const tmp = new T[other.m_capacity];
 
 		copyElements(other.m_data, tmp, other.m_size);
 
@@ -58,11 +67,12 @@ public:
 		return *this;
 	}
 
-	Vector(Vector<T>&& right)
-		: m_capacity(std::move(right.m_capacity))
-		, m_size(std::move(right.m_size))
+	Vector(Vector<T>&& right) noexcept
+		: m_capacity(right.m_capacity)
+		, m_size(right.m_size)
 		, m_data(std::move(right.m_data))
 	{
+		right.m_capacity = 0;
 		right.m_size = 0;
 		right.m_data = nullptr;
 	}
@@ -90,32 +100,82 @@ public:
 		return m_data;
 	}
 
+	const_iterator begin() const noexcept
+	{
+		return m_data;
+	}
+
+	const_iterator cbegin() const noexcept
+	{
+		return begin();
+	}
+
+	reverse_iterator rbegin() noexcept
+	{
+		return m_data + m_size;
+	}
+
+	const_reverse_iterator rbegin() const noexcept
+	{
+		return m_data + m_size;
+	}
+
+	const_reverse_iterator crbegin() const noexcept
+	{
+		return rbegin();
+	}
+
 	iterator end() noexcept
 	{
 		return m_data + m_size;
 	}
 
-	iterator rbegin() const noexcept
+	const_iterator end() const noexcept
 	{
 		return m_data + m_size;
 	}
 
-	iterator rend() const noexcept
+	const_iterator cend() const noexcept
+	{
+		return end();
+	}
+
+	reverse_iterator rend() noexcept
 	{
 		return m_data;
 	}
 
-	T& front()
+	const_reverse_iterator rend() const noexcept
+	{
+		return m_data;
+	}
+
+	const_reverse_iterator crend() const noexcept
+	{
+		return rend();
+	}
+
+	reference front()
 	{
 		return *begin();
 	}
 
-	T& back()
+	const_reference front() const
+	{
+		return *begin();
+	}
+
+	reference back()
 	{
 		return *(end() - 1);
 	}
 
-	T& at(const size_t position)
+	const_reference back() const
+	{
+		return *(end() - 1);
+	}
+
+	reference at(const size_t position)
 	{
 		if (!(position >= 0 && position < m_size))
 		{
@@ -123,6 +183,21 @@ public:
 		}
 
 		return m_data[position];
+	}
+
+	const_reference at(const size_t position) const
+	{
+		if (!(position >= 0 && position < m_size))
+		{
+			outOfRangeError();
+		}
+
+		return m_data[position];
+	}
+
+	size_t capacity() const noexcept
+	{
+		return m_capacity;
 	}
 
 	size_t size() const noexcept
@@ -162,7 +237,7 @@ public:
 		--m_size;
 	}
 
-	void insert(const iterator position, const T& element)
+	iterator insert(const_iterator position, const T& element)
 	{
 		if (size() == m_capacity)
 		{
@@ -177,9 +252,11 @@ public:
 		++m_size;
 
 		*position = element;
+
+		return position;
 	}
 
-	void erase(const iterator position)
+	iterator erase(const_iterator position)
 	{
 		if (empty())
 		{
@@ -197,9 +274,11 @@ public:
 		}
 
 		--m_size;
+
+		return position;
 	}
 
-	const T& operator[](const int index) const
+	reference operator[](const size_t index)
 	{
 		if (!(index >= 0 && index < m_size))
 		{
@@ -209,7 +288,7 @@ public:
 		return m_data[index];
 	}
 
-	T& operator[](const int index)
+	const_reference operator[](const size_t index) const
 	{
 		if (!(index >= 0 && index < m_size))
 		{
@@ -217,10 +296,23 @@ public:
 		}
 
 		return m_data[index];
+	}
+
+	size_t max_size() const noexcept
+	{
+		return static_cast<size_t>(std::numeric_limits<T>::max());
+	}
+
+	void clear() noexcept
+	{
+		for (auto it = begin(); begin() != end(); ++it)
+		{
+			popBack();
+		}
 	}
 
 private:
-	static void copyElements(const T* const from, T* const to, const size_t count)
+	static void copyElements(const_iterator const from, iterator const to, const size_t count)
 	{
 		for (size_t i = 0; i < count; ++i)
 		{
@@ -271,7 +363,7 @@ private:
 private:
 	size_t m_capacity;
 	size_t m_size;
-	T* m_data;
+	iterator m_data;
 
 };
 
