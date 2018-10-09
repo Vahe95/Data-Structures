@@ -10,7 +10,7 @@ namespace VectorUnitTests
 	TEST_CLASS(VectorTests)
 	{
 	private:
-		static std::string toString(Vector<int>& vector)
+		static std::string toString(DataStructure::Vector<int>& vector)
 		{
 			std::string result = "";
 
@@ -28,18 +28,18 @@ namespace VectorUnitTests
 	public:		
 		TEST_METHOD(CTOR)
 		{
-			Vector<int> vector;
+			DataStructure::Vector<int> vector;
 		}
 
 		TEST_METHOD(CCTORValueTest)
 		{
-			Vector<int> vector1;
+			DataStructure::Vector<int> vector1;
 
 			vector1.pushBack(10);
 			vector1.pushBack(20);
 			vector1.pushBack(30);
 
-			Vector<int> vector2(vector1);
+			DataStructure::Vector<int> vector2(vector1);
 
 			vector1.popBack();
 
@@ -50,13 +50,13 @@ namespace VectorUnitTests
 
 		TEST_METHOD(CCTORBeginTest)
 		{
-			Vector<int> vector1;
+			DataStructure::Vector<int> vector1;
 
 			vector1.pushBack(10);
 			vector1.pushBack(20);
 			vector1.pushBack(30);
 
-			Vector<int> vector2(vector1);
+			DataStructure::Vector<int> vector2(vector1);
 
 			const int expected = 10;
 			const int actual = *vector2.begin();
@@ -65,13 +65,13 @@ namespace VectorUnitTests
 
 		TEST_METHOD(CCTOREndTest)
 		{
-			Vector<int> vector1;
+			DataStructure::Vector<int> vector1;
 
 			vector1.pushBack(10);
 			vector1.pushBack(20);
 			vector1.pushBack(30);
 
-			Vector<int> vector2(vector1);
+			DataStructure::Vector<int> vector2(vector1);
 			
 			const int expected = 30;
 			const int actual = *(vector2.end() - 1);
@@ -80,13 +80,13 @@ namespace VectorUnitTests
 
 		TEST_METHOD(operatorEqualValueTest)
 		{
-			Vector<int> vector1;
+			DataStructure::Vector<int> vector1;
 
 			vector1.pushBack(10);
 			vector1.pushBack(20);
 			vector1.pushBack(30);
 
-			Vector<int> vector2;
+			DataStructure::Vector<int> vector2;
 
 			vector2 = vector1;
 
@@ -97,13 +97,13 @@ namespace VectorUnitTests
 
 		TEST_METHOD(operatorEqualBeginTest)
 		{
-			Vector<int> vector1;
+			DataStructure::Vector<int> vector1;
 
 			vector1.pushBack(10);
 			vector1.pushBack(20);
 			vector1.pushBack(30);
 
-			Vector<int> vector2;
+			DataStructure::Vector<int> vector2;
 
 			vector2 = vector1;
 
@@ -114,13 +114,13 @@ namespace VectorUnitTests
 
 		TEST_METHOD(operatorEqualEndTest)
 		{
-			Vector<int> vector1;
+			DataStructure::Vector<int> vector1;
 
 			vector1.pushBack(10);
 			vector1.pushBack(20);
 			vector1.pushBack(30);
 
-			Vector<int> vector2;
+			DataStructure::Vector<int> vector2;
 
 			vector2 = vector1;
 
@@ -131,7 +131,7 @@ namespace VectorUnitTests
 
 		TEST_METHOD(sizeTest01)
 		{
-			Vector<std::string> vector;
+			DataStructure::Vector<std::string> vector;
 
 			const size_t expected = 0;
 			const size_t actual = vector.size();
@@ -140,7 +140,7 @@ namespace VectorUnitTests
 
 		TEST_METHOD(sizeTest02)
 		{
-			Vector<std::string> vector;
+			DataStructure::Vector<std::string> vector;
 
 			vector.pushBack("A");
 			vector.pushBack("B");
@@ -154,7 +154,7 @@ namespace VectorUnitTests
 
 		TEST_METHOD(pushBackTest)
 		{
-			Vector<int> vector;
+			DataStructure::Vector<int> vector;
 
 			vector.pushBack(10);
 			vector.pushBack(20);
@@ -168,7 +168,7 @@ namespace VectorUnitTests
 
 		TEST_METHOD(popBackTest)
 		{
-			Vector<int> vector;
+			DataStructure::Vector<int> vector;
 
 			vector.pushBack(10);
 			vector.pushBack(20);
@@ -182,9 +182,25 @@ namespace VectorUnitTests
 			Assert::AreEqual(expected, actual, L"", LINE_INFO());
 		}
 
-		TEST_METHOD(insertTest)
+		TEST_METHOD(insertFromBeginTest)
 		{
-			Vector<int> vector;
+			DataStructure::Vector<int> vector;
+
+			vector.pushBack(10);
+			vector.pushBack(20);
+			vector.pushBack(30);
+			vector.pushBack(40);
+
+			vector.insert(vector.begin(), 50);
+
+			const std::string expected = "50 10 20 30 40 ";
+			const std::string actual = toString(vector);
+			Assert::AreEqual(expected, actual, L"", LINE_INFO());
+		}
+
+		TEST_METHOD(insertFromMiddleTest)
+		{
+			DataStructure::Vector<int> vector;
 
 			vector.pushBack(10);
 			vector.pushBack(20);
@@ -198,9 +214,25 @@ namespace VectorUnitTests
 			Assert::AreEqual(expected, actual, L"", LINE_INFO());
 		}
 
-		TEST_METHOD(eraseTest)
+		TEST_METHOD(insertFromEndTest)
 		{
-			Vector<int> vector;
+			DataStructure::Vector<int> vector;
+
+			vector.pushBack(10);
+			vector.pushBack(20);
+			vector.pushBack(30);
+			vector.pushBack(40);
+
+			vector.insert(vector.end(), 50);
+
+			const std::string expected = "10 20 30 40 50 ";
+			const std::string actual = toString(vector);
+			Assert::AreEqual(expected, actual, L"", LINE_INFO());
+		}
+
+		TEST_METHOD(eraseFromBeginTest)
+		{
+			DataStructure::Vector<int> vector;
 
 			vector.pushBack(10);
 			vector.pushBack(20);
@@ -214,9 +246,41 @@ namespace VectorUnitTests
 			Assert::AreEqual(expected, actual, L"", LINE_INFO());
 		}
 
+		TEST_METHOD(eraseFromMiddleTest)
+		{
+			DataStructure::Vector<int> vector;
+
+			vector.pushBack(10);
+			vector.pushBack(20);
+			vector.pushBack(30);
+			vector.pushBack(40);
+
+			vector.erase(vector.begin() + 1);
+
+			const std::string expected = "10 30 40 ";
+			const std::string actual = toString(vector);
+			Assert::AreEqual(expected, actual, L"", LINE_INFO());
+		}
+
+		TEST_METHOD(eraseFromEndTest)
+		{
+			DataStructure::Vector<int> vector;
+
+			vector.pushBack(10);
+			vector.pushBack(20);
+			vector.pushBack(30);
+			vector.pushBack(40);
+
+			vector.erase(vector.end() - 1);
+
+			const std::string expected = "10 20 30 ";
+			const std::string actual = toString(vector);
+			Assert::AreEqual(expected, actual, L"", LINE_INFO());
+		}
+
 		TEST_METHOD(isEmptyTest)
 		{
-			Vector<int> vector;
+			DataStructure::Vector<int> vector;
 
 			const bool expected = true;
 			const bool actual = vector.empty();
@@ -225,7 +289,7 @@ namespace VectorUnitTests
 
 		TEST_METHOD(isNotEmptyTest)
 		{
-			Vector<int> vector;
+			DataStructure::Vector<int> vector;
 
 			vector.pushBack(10);
 
@@ -236,7 +300,7 @@ namespace VectorUnitTests
 
 		TEST_METHOD(outOfRangeErrorTest)
 		{
-			Vector<int> vector;
+			DataStructure::Vector<int> vector;
 
 			try
 			{
@@ -244,39 +308,7 @@ namespace VectorUnitTests
 			}
 			catch (const std::out_of_range& e)
 			{
-				const std::string expected("Index is Out of Range!");
-				const std::string actual(e.what());
-				Assert::AreEqual(expected, actual, L"", LINE_INFO());
-			}
-		}
-
-		TEST_METHOD(underflow_error_Test01)
-		{
-			Vector<int> vector;
-
-			try
-			{
-				vector.popBack();
-			}
-			catch (const std::underflow_error& e)
-			{
-				const std::string expected("Stack is Empty!");
-				const std::string actual(e.what());
-				Assert::AreEqual(expected, actual, L"", LINE_INFO());
-			}
-		}
-
-		TEST_METHOD(underflow_error_Test02)
-		{
-			Vector<int> vector;
-
-			try
-			{
-				vector.erase(vector.begin());
-			}
-			catch (const std::underflow_error& e)
-			{
-				const std::string expected("Stack is Empty!");
+				const std::string expected("Out of Range!");
 				const std::string actual(e.what());
 				Assert::AreEqual(expected, actual, L"", LINE_INFO());
 			}
