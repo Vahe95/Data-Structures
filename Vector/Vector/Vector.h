@@ -181,7 +181,7 @@ namespace DataStructure
 		{
 			if (!(position >= 0 && position < m_size))
 			{
-				outOfRangeError();
+				throw std::out_of_range("Out of Range!");
 			}
 
 			return m_data[position];
@@ -191,30 +191,45 @@ namespace DataStructure
 		{
 			if (!(position >= 0 && position < m_size))
 			{
-				outOfRangeError();
+				throw std::out_of_range("Out of Range!");
 			}
 
 			return m_data[position];
 		}
 
-		size_t capacity() const noexcept
+		T* data() noexcept
+		{
+			return m_data;
+		}
+
+		const T* data() const noexcept
+		{
+			return m_data;
+		}
+
+		constexpr size_t capacity() const noexcept
 		{
 			return m_capacity;
 		}
 
-		size_t size() const noexcept
+		constexpr size_t size() const noexcept
 		{
 			return m_size;
 		}
 
-		bool empty() const noexcept
+		constexpr bool empty() const noexcept
 		{
 			return m_size == 0;
 		}
 
 		void pushBack(const T& element)
 		{
-			insert(end(), element);
+			emplace_back(element);
+		}
+
+		void pushBack(T&& element)
+		{
+			emplace_back(std::move(element));
 		}
 
 		void popBack()
@@ -224,38 +239,24 @@ namespace DataStructure
 
 		iterator insert(const_iterator position, const T& element)
 		{
-			size_t pos = position - m_data;
-			iterator tmp = &m_data[pos];
+			return emplace(position, element);
+		}
 
-			if (size() == m_capacity)
-			{
-				reolocateMemory();
-			}
-
-			tmp = &m_data[pos];
-
-			for (auto it = end(); it > tmp; --it)
-			{
-				*it = std::move(*(it - 1));
-			}
-
-			++m_size;
-
-			*tmp = element;
-
-			return tmp;
+		iterator insert(const_iterator position, T&& element)
+		{
+			return emplace(position, std::move(element));
 		}
 
 		iterator erase(const_iterator position)
 		{
 			if (!(position >= begin() && position < end()))
 			{
-				outOfRangeError();
+				throw std::out_of_range("Erase Element Position Out of Range!");
 			}
 
 			if (empty())
 			{
-				underflowError();
+				throw std::underflow_error("Stack is Empty!");
 			}
 
 			iterator tmp = &m_data[position - m_data];
@@ -271,11 +272,46 @@ namespace DataStructure
 			return tmp;
 		}
 
+		template<class ...Args>
+		reference emplace_back(Args&&... args)
+		{
+			if (needMoreMemory())
+			{
+				reallocateMemory();
+			}
+
+			return m_data[m_size++] = std::move(T(std::forward<Args>(args) ...));
+		}
+
+		template<class... Args>
+		iterator emplace(const_iterator position, Args&&... args)
+		{
+			size_t pos = position - m_data;
+
+			if (needMoreMemory())
+			{
+				reallocateMemory();
+			}
+
+			iterator tmp = &m_data[pos];
+
+			for (auto it = end(); it > tmp; --it)
+			{
+				*it = std::move(*(it - 1));
+			}
+
+			++m_size;
+
+			*tmp = std::move(T(std::forward<Args>(args) ...));
+
+			return tmp;
+		}
+
 		reference operator[](const size_t index)
 		{
 			if (!(index >= 0 && index < m_size))
 			{
-				outOfRangeError();
+				throw std::out_of_range("Out of Range!");
 			}
 
 			return m_data[index];
@@ -285,10 +321,17 @@ namespace DataStructure
 		{
 			if (!(index >= 0 && index < m_size))
 			{
-				outOfRangeError();
+				throw std::out_of_range("Out of Range!");
 			}
 
 			return m_data[index];
+		}
+
+		void shrink_to_fit()
+		{
+			m_capacity = m_size;
+
+			reolocateMemory();
 		}
 
 		size_t max_size() const noexcept
@@ -313,7 +356,12 @@ namespace DataStructure
 			}
 		}
 
-		void reolocateMemory()
+		constexpr bool needMoreMemory() const
+		{
+			return m_size == m_capacity;
+		}
+
+		void reallocateMemory()
 		{
 			m_capacity += (m_capacity / 2) + 1;
 
@@ -324,16 +372,6 @@ namespace DataStructure
 			delete[] m_data;
 
 			m_data = tmp;
-		}
-
-		void underflowError()
-		{
-			throw std::underflow_error("Stack is Empty!");
-		}
-
-		void outOfRangeError()
-		{
-			throw std::out_of_range("Out of Range!");
 		}
 
 	private:
