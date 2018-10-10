@@ -66,6 +66,11 @@ namespace DataStructure
 			return m_size == 0;
 		}
 
+		void fill(const T& value)
+		{
+			std::fill(m_data, m_size, value);
+		}
+
 		reference operator[](const size_t index)
 		{
 			if (!(index >= 0 && index < m_size))
