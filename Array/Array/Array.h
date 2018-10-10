@@ -3,138 +3,101 @@
 
 #include <array>
 
-template<class T, size_t N>
-class Array
+namespace DataStructure
 {
-public:
-	typedef T* iterator;
-
-public:
-	Array()
-		: m_capacity(N)
-		, m_size(0)
+	template<class T, size_t N>
+	class Array
 	{
-	}
+	public:
+		using iterator = T*;
+		using const_iterator = const T*;
 
-	~Array()
-	{
-	}
+		using reference = T&;
+		using const_reference = const T&;
 
-	constexpr size_t size() const noexcept
-	{
-		return m_size;
-	}
-
-	constexpr iterator begin() noexcept
-	{
-		return m_data;
-	}
-
-	constexpr iterator end() noexcept
-	{
-		return m_data + m_size;
-	}
-
-	constexpr bool empty() const noexcept
-	{
-		return m_size == 0;
-	}
-
-	const T& operator[](const int index) const
-	{
-		if (!(index >= 0 && index < m_size))
+	public:
+		Array()
+			: m_capacity(N)
+			, m_size(0)
 		{
-			outOfRangeError();
 		}
 
-		return m_data[index];
-	}
-
-	T& operator[](const int index)
-	{
-		return m_data[index];
-	}
-
-	void pushBack(const T& element)
-	{
-		if (isFull())
+		~Array()
 		{
-			overflowError();
 		}
 
-		m_data[m_size] = element;
-
-		++m_size;
-	}
-
-	void popBack()
-	{
-		if (isEmpty())
+		constexpr iterator begin() noexcept
 		{
-			underflowError();
+			return m_data;
 		}
 
-		--m_size;
-	}
-
-	void insert(const iterator position, const T& element)
-	{
-		if (isFull())
+		constexpr const_iterator begin() const noexcept
 		{
-			overflowError();
+			return m_data;
 		}
 
-		for (auto it = end(); it > position; --it)
+		constexpr const_iterator cbegin() const noexcept
 		{
-			*it = *(it - 1);
+			return begin();
 		}
 
-		++m_size;
-
-		*position = element;
-	}
-
-	void erase(const iterator position)
-	{
-		if (isEmpty())
+		constexpr iterator end() noexcept
 		{
-			underflowError();
+			return m_data + m_size;
 		}
 
-		for (auto it = position; it != end(); ++it)
+		constexpr const_iterator end() const noexcept
 		{
-			*it = *(it + 1);
+			return m_data + m_size;
 		}
 
-		--m_size;
-	}
+		constexpr const_iterator cend() const noexcept
+		{
+			return end();
+		}
 
-private:
-	bool isFull()
-	{
-		return m_size == m_capacity;
-	}
+		constexpr size_t size() const noexcept
+		{
+			return m_size;
+		}
 
-	void outOfRangeError()
-	{
-		throw std::out_of_range("Index is Out of Range");
-	}
+		constexpr bool empty() const noexcept
+		{
+			return m_size == 0;
+		}
 
-	void overflowError()
-	{
-		throw std::overflow_error("Array is Full!");
-	}
+		reference operator[](const size_t index)
+		{
+			if (!(index >= 0 && index < m_size))
+			{
+				outOfRangeError();
+			}
 
-	void underflowError()
-	{
-		throw std::underflow_error("Array is Empty!");
-	}
+			return m_data[index];
+		}
 
-private:
-	size_t m_capacity;
-	size_t m_size;
-	T m_data[N];
+		const_reference operator[](const size_t index) const
+		{
+			if (!(index >= 0 && index < m_size))
+			{
+				outOfRangeError();
+			}
 
-};
+			return m_data[index];
+		}
+
+	private:
+		bool isFull()
+		{
+			return m_size == m_capacity;
+		}
+
+	private:
+		size_t m_capacity;
+		size_t m_size;
+		T m_data[N];
+
+	};
+}
 
 #endif // Array_h__
