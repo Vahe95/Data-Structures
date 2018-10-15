@@ -249,7 +249,7 @@ namespace ListUnitTests
 			list.pushBack(30);
 			list.pushBack(40);
 
-			list.erase(++(++list.begin()));
+			list.erase(++(++list.cbegin()));
 
 			const std::string expected = "10 20 40 ";
 			const std::string actual = toString(list);

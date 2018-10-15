@@ -78,6 +78,8 @@ private:
 		{
 		}
 
+		friend class List;
+
 		const T& operator*()
 		{
 			return m_current->m_data;
@@ -217,7 +219,7 @@ public:
 			underflowError();
 		}
 
-		erase(--end());
+		erase(--cend());
 	}
 
 	void pushFront(const T& element)
@@ -232,7 +234,7 @@ public:
 			underflowError();
 		}
 
-		erase(begin());
+		erase(cbegin());
 	}
 
 	iterator insert(iterator position, const T& element)
@@ -250,7 +252,7 @@ public:
 		return iterator(newNode);
 	}
 
-	iterator erase(iterator position)
+	iterator erase(const_iterator position)
 	{
 		if (empty())
 		{
@@ -260,7 +262,7 @@ public:
 		position.m_current->m_prev->m_next = position.m_current->m_next;
 		position.m_current->m_next->m_prev = position.m_current->m_prev;
 
-		iterator i = position;
+		const_iterator i = position;
 
 		delete position.m_current;
 
@@ -269,12 +271,12 @@ public:
 		return iterator(i.m_current->m_next);
 	}
 
-	size_t size() const noexcept
+	constexpr size_t size() const noexcept
 	{
 		return m_size;
 	}
 
-	bool empty() const noexcept
+	constexpr bool empty() const noexcept
 	{
 		return m_size == 0;
 	}
