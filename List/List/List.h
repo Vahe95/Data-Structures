@@ -11,14 +11,14 @@ private:
 private:
 	struct Node
 	{
-		T m_data;
-		Node* m_prev;
 		Node* m_next;
+		Node* m_prev;
+		T m_data;
 
-		Node(const T& data = T(), Node* prev = nullptr, Node* next = nullptr)
-			: m_data(data)
+		Node(Node* next = nullptr, Node* prev = nullptr, const T& data = T())
+			: m_next(next)
 			, m_prev(prev)
-			, m_next(next)
+			, m_data(data)
 		{
 		}
 	};
@@ -219,7 +219,7 @@ public:
 			underflowError();
 		}
 
-		erase(--cend());
+		erase(--end());
 	}
 
 	void pushFront(const T& element)
@@ -234,25 +234,25 @@ public:
 			underflowError();
 		}
 
-		erase(cbegin());
+		erase(begin());
 	}
 
 	iterator insert(iterator position, const T& element)
 	{
-		Node* next = position.m_current;
-		Node* prev = position.m_current->m_prev;
+		Node* rightNode = position.m_current;
+		Node* leftNode = rightNode->m_prev;
 
-		Node* newNode = new Node(element, prev, next);
+		Node* newNode = new Node(rightNode, leftNode, element);
 
-		next->m_prev = newNode;
-		prev->m_next = newNode;
+		rightNode->m_prev = newNode;
+		leftNode->m_next = newNode;
 
 		++m_size;
 
 		return iterator(newNode);
 	}
 
-	iterator erase(const_iterator position)
+	iterator erase(iterator position)
 	{
 		if (empty())
 		{
@@ -262,7 +262,7 @@ public:
 		position.m_current->m_prev->m_next = position.m_current->m_next;
 		position.m_current->m_next->m_prev = position.m_current->m_prev;
 
-		const_iterator i = position;
+		iterator i = position;
 
 		delete position.m_current;
 
@@ -271,12 +271,20 @@ public:
 		return iterator(i.m_current->m_next);
 	}
 
-	constexpr size_t size() const noexcept
+	void clear() noexcept
+	{
+		for (auto it = cbegin(); it != cend(); ++it)
+		{
+			popBack();
+		}
+	}
+
+	size_t size() const noexcept
 	{
 		return m_size;
 	}
 
-	constexpr bool empty() const noexcept
+	bool empty() const noexcept
 	{
 		return m_size == 0;
 	}
