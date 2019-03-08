@@ -166,9 +166,40 @@ namespace DataStructure
 				popBack();
 			}
 
-			for (auto it = other.cbegin(); it != other.cend(); ++it)
+			for (auto elem : other)
 			{
-				pushBack(*it);
+				pushBack(elem);
+			}
+
+			return *this;
+		}
+
+		List(List&& other)
+			: List()
+		{
+			for (auto elem : other)
+			{
+				pushBack(std::move(elem));
+			}
+
+			while (other.m_size > 0)
+			{
+				other.popBack();
+			}
+		}
+
+		List& operator=(List&& other)
+		{
+			List();
+
+			for (auto elem : other)
+			{
+				pushBack(std::move(elem));
+			}
+
+			while (other.m_size > 0)
+			{
+				other.popBack();
 			}
 
 			return *this;
