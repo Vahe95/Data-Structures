@@ -174,6 +174,15 @@ namespace DataStructure
 			return *this;
 		}
 
+		List(std::initializer_list<T> init)
+			: List()
+		{
+			for (auto elem : init)
+			{
+				pushBack(elem);
+			}
+		}
+
 		~List()
 		{
 			while (m_size > 0)
