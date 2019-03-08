@@ -190,8 +190,6 @@ namespace DataStructure
 
 		List& operator=(List&& other)
 		{
-			List();
-
 			for (auto elem : other)
 			{
 				pushBack(std::move(elem));
