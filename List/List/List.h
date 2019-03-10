@@ -5,51 +5,57 @@
 namespace DataStructure
 {
 	template<class T>
+	struct Node
+	{
+		using NodePtr = std::_Rebind_pointer_t<void*, Node>;
+		NodePtr m_next;
+		NodePtr m_prev;
+		T m_data;
+
+		Node(Node* next, Node* prev, const T& data)
+			: m_next(next)
+			, m_prev(prev)
+			, m_data(data)
+		{
+		}
+
+		Node(Node* next, Node* prev, T&& data)
+			: m_next(next)
+			, m_prev(prev)
+			, m_data(std::move(data))
+		{
+		}
+
+		template<class... Args>
+		Node(Node* next, Node* prev, Args&&... data)
+			: m_next(next)
+			, m_prev(prev)
+			, m_data(T(std::forward<Args>(data)...))
+		{
+		}
+	};
+
+	template<class T, class Alloc = std::allocator<T>>
 	class List
 	{
+		static_assert(!_ENFORCE_MATCHING_ALLOCATORS || std::is_same<T, typename Alloc::value_type>::value);
+
 	private:
-		using reference = T & ;
+		using reference = T&;
 		using const_reference = const T&;
 
+		using _Alty = std::_Rebind_alloc_t<Alloc, T>;
+		using _Alty_traits = std::allocator_traits<_Alty>;
+		using ListNode = Node<T>;
+		using _Alnode = std::_Rebind_alloc_t<Alloc, ListNode>;
+		using _Alnode_traits = std::allocator_traits<_Alnode>;
+		using NodePtr = typename _Alnode_traits::pointer;
+
 	private:
-		struct Node
-		{
-			Node* m_next;
-			Node* m_prev;
-			T m_data;
-
-			Node()
-			{
-
-			}
-
-			Node(Node* next, Node* prev, const T& data)
-				: m_next(next)
-				, m_prev(prev)
-				, m_data(data)
-			{
-			}
-
-			Node(Node* next, Node* prev, T&& data)
-				: m_next(next)
-				, m_prev(prev)
-				, m_data(std::move(data))
-			{
-			}
-
-			template<class... Args>
-			Node(Node* next, Node* prev, Args&&... data)
-				: m_next(next)
-				, m_prev(prev)
-				, m_data(T(std::forward<Args>(data)...))
-			{
-			}
-		};
-
 		class Iterator
 		{
 		public:
-			explicit Iterator(Node* const current)
+			explicit Iterator(NodePtr const current)
 				: m_current(current)
 			{
 			}
@@ -90,13 +96,13 @@ namespace DataStructure
 			}
 
 		private:
-			Node* m_current;
+			NodePtr m_current;
 		};
 
 		class Const_Iterator
 		{
 		public:
-			Const_Iterator(const Node* const current)
+			Const_Iterator(NodePtr const current)
 				: m_current(current)
 			{
 			}
@@ -137,17 +143,14 @@ namespace DataStructure
 			}
 
 		private:
-			const Node* m_current;
+			NodePtr m_current;
 		};
 
 	public:
 		List()
-			: m_head(new Node())
-			, m_tail(new Node())
-			, m_size(0)
+			: m_size(0)
 		{
-			m_head->m_next = m_tail;
-			m_tail->m_prev = m_head;
+			m_head = buyHeadNode();
 		}
 
 		List(const List& other)
@@ -237,12 +240,12 @@ namespace DataStructure
 
 		Iterator end() noexcept
 		{
-			return Iterator(m_tail);
+			return Iterator(m_head);
 		}
 
 		Const_Iterator end() const noexcept
 		{
-			return Const_Iterator(m_tail);
+			return Const_Iterator(m_head);
 		}
 
 		Const_Iterator cend() const noexcept
@@ -257,7 +260,7 @@ namespace DataStructure
 
 		const_reference front() const
 		{
-			return m_head.m_next->m_data;
+			return m_head->m_next->m_data;
 		}
 
 		reference back()
@@ -343,10 +346,9 @@ namespace DataStructure
 		template<class... Args>
 		Iterator insert(Iterator position, Args&&... value)
 		{
-			Node* rightNode = position.m_current;
-			Node* leftNode = rightNode->m_prev;
-			//Node* newNode = new Node(rightNode, leftNode, std::forward<Args>(value)...);
-			Node* newNode = new Node(rightNode, leftNode, std::forward<Args>(value)...);
+			NodePtr rightNode = position.m_current;
+			NodePtr leftNode = rightNode->m_prev;
+			NodePtr newNode = new Node(rightNode, leftNode, std::forward<Args>(value)...);
 
 			++m_size;
 
@@ -394,6 +396,29 @@ namespace DataStructure
 		}
 
 	private:
+		NodePtr buyHeadNode()
+		{	// get head node using current allocator
+			return buyNode(NodePtr(), NodePtr());
+		}
+
+		NodePtr buyNode(NodePtr next, NodePtr prev)
+		{	// allocate a node and set links
+			_Alnode al;
+
+			NodePtr headNodePtr = al.allocate(1);
+
+			if (next == NodePtr())
+			{	// point at self
+				next = headNodePtr;
+				prev = headNodePtr;
+			}
+
+			_Alnode_traits::construct(al, std::addressof(headNodePtr->m_next), next);
+			_Alnode_traits::construct(al, std::addressof(headNodePtr->m_prev), prev);
+
+			return headNodePtr;
+		}
+
 		void underflowError()
 		{
 			throw std::underflow_error("List is Empty!");
@@ -404,8 +429,7 @@ namespace DataStructure
 		using const_iterator = Const_Iterator;
 
 	private:
-		Node* m_head;
-		Node* m_tail;
+		NodePtr m_head;
 		std::size_t m_size;
 	};
 }
