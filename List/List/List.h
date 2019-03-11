@@ -92,7 +92,7 @@ namespace DataStructure
 		using const_reference = typename MyList::const_reference;
 
 	public:
-		Const_Iterator(NodePtr const current)
+		explicit Const_Iterator(NodePtr const current)
 			: m_current(current)
 		{
 		}
@@ -140,8 +140,6 @@ namespace DataStructure
 		static_assert(!_ENFORCE_MATCHING_ALLOCATORS || std::is_same<T, typename Alloc::value_type>::value);
 
 	private:
-		/*using _Alty = std::_Rebind_alloc_t<Alloc, T>;
-		using _Alty_traits = std::allocator_traits<_Alty>;*/
 		using NodeAllocator = std::_Rebind_alloc_t<Alloc, Node<T>>;
 		using NodeAllocatorTraits = std::allocator_traits<NodeAllocator>;
 
@@ -432,8 +430,8 @@ namespace DataStructure
 		}
 
 	private:
-		NodePtr m_head;
 		NodeAllocator m_allocator;
+		NodePtr m_head;
 		std::size_t m_size;
 	};
 }

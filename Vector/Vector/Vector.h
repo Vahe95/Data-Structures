@@ -377,8 +377,7 @@ namespace DataStructure
 	private:
 		size_t m_capacity;
 		size_t m_size;
-		iterator m_data;
-
+		T* m_data;
 	};
 }
 
