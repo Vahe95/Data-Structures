@@ -8,6 +8,7 @@ namespace DataStructure
 	struct Node
 	{
 		using NodePtr = std::_Rebind_pointer_t<void*, Node>;
+
 		NodePtr m_next;
 		NodePtr m_prev;
 		T m_data;
@@ -35,120 +36,128 @@ namespace DataStructure
 		}
 	};
 
+	template<class MyList>
+	class Iterator
+	{
+		using NodePtr = typename MyList::NodePtr;
+		using reference = typename MyList::reference;
+
+	public:
+		explicit Iterator(NodePtr const current)
+			: m_current(current)
+		{
+		}
+
+		reference operator*()
+		{
+			return m_current->m_data;
+		}
+
+		Iterator operator=(const Iterator rhs)
+		{
+			m_current = rhs.m_current;
+			return *this;
+		}
+
+		bool operator==(const Iterator& rhs)
+		{
+			return rhs.m_current == m_current;
+		}
+
+		bool operator!=(const Iterator& rhs)
+		{
+			return !(operator==(rhs));
+		}
+
+		Iterator operator++()
+		{
+			m_current = m_current->m_next;
+			return *this;
+		}
+
+		Iterator operator--()
+		{
+			m_current = m_current->m_prev;
+			return *this;
+		}
+
+	public:
+		NodePtr m_current;
+	};
+
+	template<class MyList>
+	class Const_Iterator
+	{
+		using NodePtr = typename MyList::NodePtr;
+		using const_reference = typename MyList::const_reference;
+
+	public:
+		Const_Iterator(NodePtr const current)
+			: m_current(current)
+		{
+		}
+
+		const_reference operator*()
+		{
+			return m_current->m_data;
+		}
+
+		Const_Iterator operator=(const Const_Iterator rhs)
+		{
+			m_current = rhs.m_current;
+			return *this;
+		}
+
+		bool operator==(const Const_Iterator& rhs)
+		{
+			return rhs.m_current == m_current;
+		}
+
+		bool operator!=(const Const_Iterator& rhs)
+		{
+			return !(operator==(rhs));
+		}
+
+		Const_Iterator operator++()
+		{
+			m_current = m_current->m_next;
+			return *this;
+		}
+
+		Const_Iterator operator--()
+		{
+			m_current = m_current->m_prev;
+			return *this;
+		}
+
+	public:
+		NodePtr m_current;
+	};
+
 	template<class T, class Alloc = std::allocator<T>>
 	class List
 	{
 		static_assert(!_ENFORCE_MATCHING_ALLOCATORS || std::is_same<T, typename Alloc::value_type>::value);
 
 	private:
+		/*using _Alty = std::_Rebind_alloc_t<Alloc, T>;
+		using _Alty_traits = std::allocator_traits<_Alty>;*/
+		using NodeAllocator = std::_Rebind_alloc_t<Alloc, Node<T>>;
+		using NodeAllocatorTraits = std::allocator_traits<NodeAllocator>;
+
+	public:
 		using reference = T&;
 		using const_reference = const T&;
 
-		using _Alty = std::_Rebind_alloc_t<Alloc, T>;
-		using _Alty_traits = std::allocator_traits<_Alty>;
-		using ListNode = Node<T>;
-		using _Alnode = std::_Rebind_alloc_t<Alloc, ListNode>;
-		using _Alnode_traits = std::allocator_traits<_Alnode>;
-		using NodePtr = typename _Alnode_traits::pointer;
+		using iterator = Iterator<List>;
+		using const_iterator = Const_Iterator<List>;
 
-	private:
-		class Iterator
-		{
-		public:
-			explicit Iterator(NodePtr const current)
-				: m_current(current)
-			{
-			}
-
-			friend class List;
-
-			reference operator*()
-			{
-				return m_current->m_data;
-			}
-
-			Iterator operator=(const Iterator rhs)
-			{
-				m_current = rhs.m_current;
-				return *this;
-			}
-
-			bool operator==(const Iterator& rhs)
-			{
-				return rhs.m_current == m_current;
-			}
-
-			bool operator!=(const Iterator& rhs)
-			{
-				return !(operator==(rhs));
-			}
-
-			Iterator operator++()
-			{
-				m_current = m_current->m_next;
-				return *this;
-			}
-
-			Iterator operator--()
-			{
-				m_current = m_current->m_prev;
-				return *this;
-			}
-
-		private:
-			NodePtr m_current;
-		};
-
-		class Const_Iterator
-		{
-		public:
-			Const_Iterator(NodePtr const current)
-				: m_current(current)
-			{
-			}
-
-			friend class List;
-
-			const T& operator*()
-			{
-				return m_current->m_data;
-			}
-
-			Const_Iterator operator=(const Const_Iterator rhs)
-			{
-				m_current = rhs.m_current;
-				return *this;
-			}
-
-			bool operator==(const Const_Iterator& rhs)
-			{
-				return rhs.m_current == m_current;
-			}
-
-			bool operator!=(const Const_Iterator& rhs)
-			{
-				return !(operator==(rhs));
-			}
-
-			Const_Iterator operator++()
-			{
-				m_current = m_current->m_next;
-				return *this;
-			}
-
-			Const_Iterator operator--()
-			{
-				m_current = m_current->m_prev;
-				return *this;
-			}
-
-		private:
-			NodePtr m_current;
-		};
+		using NodePtr = typename NodeAllocatorTraits::pointer;
 
 	public:
 		List()
-			: m_size(0)
+			: m_allocator()
+			, m_size(0)
 		{
 			m_head = buyHeadNode();
 		}
@@ -156,9 +165,9 @@ namespace DataStructure
 		List(const List& other)
 			: List()
 		{
-			for (auto it = other.cbegin(); it != other.cend(); ++it)
+			for (auto cIt = other.cbegin(); cIt != other.cend(); ++cIt)
 			{
-				pushBack(*it);
+				pushBack(*cIt);
 			}
 		}
 
@@ -223,54 +232,54 @@ namespace DataStructure
 			}
 		}
 
-		Iterator begin() noexcept
+		[[nodiscard]] iterator begin() noexcept
 		{
-			return Iterator(m_head->m_next);
+			return iterator(m_head->m_next);
 		}
 
-		Const_Iterator begin() const noexcept
+		[[nodiscard]] const_iterator begin() const noexcept
 		{
-			return Const_Iterator(m_head->m_next);
+			return const_iterator(m_head->m_next);
 		}
 
-		Const_Iterator cbegin() const noexcept
+		[[nodiscard]] const_iterator cbegin() const noexcept
 		{
 			return begin();
 		}
 
-		Iterator end() noexcept
+		[[nodiscard]] iterator end() noexcept
 		{
-			return Iterator(m_head);
+			return iterator(m_head);
 		}
 
-		Const_Iterator end() const noexcept
+		[[nodiscard]] const_iterator end() const noexcept
 		{
-			return Const_Iterator(m_head);
+			return const_iterator(m_head);
 		}
 
-		Const_Iterator cend() const noexcept
+		[[nodiscard]] const_iterator cend() const noexcept
 		{
 			return end();
 		}
 
-		reference front()
+		[[nodiscard]] reference front()
 		{
 			return m_head->m_next->m_data;
 		}
 
-		const_reference front() const
+		[[nodiscard]] const_reference front() const
 		{
 			return m_head->m_next->m_data;
 		}
 
-		reference back()
+		[[nodiscard]] reference back()
 		{
-			return m_tail->m_prev->m_data;
+			return *(--end());
 		}
 
-		const_reference back() const
+		[[nodiscard]] const_reference back() const
 		{
-			return m_tail.m_prev->m_data;
+			return *(--end());
 		}
 
 		void pushFront(const T& element)
@@ -344,7 +353,7 @@ namespace DataStructure
 		//}
 
 		template<class... Args>
-		Iterator insert(Iterator position, Args&&... value)
+		iterator insert(iterator position, Args&&... value)
 		{
 			NodePtr rightNode = position.m_current;
 			NodePtr leftNode = rightNode->m_prev;
@@ -358,7 +367,7 @@ namespace DataStructure
 			return iterator(newNode);
 		}
 
-		Iterator erase(Const_Iterator position)
+		iterator erase(const_iterator position)
 		{
 			if (empty())
 			{
@@ -374,7 +383,7 @@ namespace DataStructure
 
 			--m_size;
 
-			return Iterator(tmpPosition.m_current->m_next);
+			return iterator(tmpPosition.m_current->m_next);
 		}
 
 		void clear() noexcept
@@ -385,12 +394,12 @@ namespace DataStructure
 			}
 		}
 
-		constexpr size_t size() const noexcept
+		[[nodiscard]] constexpr size_t size() const noexcept
 		{
 			return m_size;
 		}
 
-		constexpr bool empty() const noexcept
+		[[nodiscard]] constexpr bool empty() const noexcept
 		{
 			return m_size == 0;
 		}
@@ -403,9 +412,7 @@ namespace DataStructure
 
 		NodePtr buyNode(NodePtr next, NodePtr prev)
 		{	// allocate a node and set links
-			_Alnode al;
-
-			NodePtr headNodePtr = al.allocate(1);
+			NodePtr headNodePtr = m_allocator.allocate(1);
 
 			if (next == NodePtr())
 			{	// point at self
@@ -413,8 +420,8 @@ namespace DataStructure
 				prev = headNodePtr;
 			}
 
-			_Alnode_traits::construct(al, std::addressof(headNodePtr->m_next), next);
-			_Alnode_traits::construct(al, std::addressof(headNodePtr->m_prev), prev);
+			NodeAllocatorTraits::construct(m_allocator, std::addressof(headNodePtr->m_next), next);
+			NodeAllocatorTraits::construct(m_allocator, std::addressof(headNodePtr->m_prev), prev);
 
 			return headNodePtr;
 		}
@@ -424,12 +431,9 @@ namespace DataStructure
 			throw std::underflow_error("List is Empty!");
 		}
 
-	public:
-		using iterator = Iterator;
-		using const_iterator = Const_Iterator;
-
 	private:
 		NodePtr m_head;
+		NodeAllocator m_allocator;
 		std::size_t m_size;
 	};
 }
