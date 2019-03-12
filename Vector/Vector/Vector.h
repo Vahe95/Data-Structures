@@ -3,9 +3,15 @@
 
 namespace DataStructure
 {
-	template<class T>
+	template<class T, class Alloc = std::allocator<T>>
 	class Vector
 	{
+	private:
+		using NodeAllocator = std::_Rebind_alloc_t<Alloc, T>;
+		using NodeAllocatorTraits = std::allocator_traits<NodeAllocator>;
+
+		using NodePtr = typename NodeAllocatorTraits::pointer;
+
 	public:
 		using iterator = T*;
 		using const_iterator = const T*;
@@ -17,10 +23,12 @@ namespace DataStructure
 
 	public:
 		Vector() noexcept
-			: m_capacity(0)
+			: m_allocator()
+			, m_capacity(0)
 			, m_size(0)
-			, m_data(new T[m_capacity]())
+			, m_data(nullptr)
 		{
+			m_data = m_allocator.allocate(1);
 		}
 
 		explicit Vector(const size_t count)
@@ -331,7 +339,7 @@ namespace DataStructure
 		{
 			m_capacity = m_size;
 
-			reolocateMemory();
+			reallocateMemory();
 		}
 
 		size_t max_size() const noexcept
@@ -375,6 +383,7 @@ namespace DataStructure
 		}
 
 	private:
+		NodeAllocator m_allocator;
 		size_t m_capacity;
 		size_t m_size;
 		T* m_data;
