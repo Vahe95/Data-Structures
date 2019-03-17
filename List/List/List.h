@@ -43,6 +43,11 @@ namespace DataStructure
 		using reference = typename MyList::reference;
 
 	public:
+		Iterator()
+		{
+
+		}
+
 		explicit Iterator(NodePtr const current)
 			: m_current(current)
 		{
@@ -75,10 +80,24 @@ namespace DataStructure
 			return *this;
 		}
 
+		Iterator operator++(int)
+		{
+			Iterator tmp = *this;
+			++*this;
+			return tmp;
+		}
+
 		Iterator operator--()
 		{
 			m_current = m_current->m_prev;
 			return *this;
+		}
+
+		Iterator operator--(int)
+		{
+			Iterator tmp = *this;
+			--*this;
+			return tmp;
 		}
 
 	public:
@@ -124,10 +143,24 @@ namespace DataStructure
 			return *this;
 		}
 
+		Const_Iterator operator++(int)
+		{
+			Const_Iterator tmp = *this;
+			++*this;
+			return tmp;
+		}
+
 		Const_Iterator operator--()
 		{
 			m_current = m_current->m_prev;
 			return *this;
+		}
+
+		Const_Iterator operator--(int)
+		{
+			Const_Iterator tmp = *this;
+			--*this;
+			return tmp;
 		}
 
 	public:

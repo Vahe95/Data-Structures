@@ -10,7 +10,7 @@ namespace ListUnitTests
 	TEST_CLASS(ListTests)
 	{
 	private:
-		std::string toString(List<int>& list)
+		std::string toString(DataStructure::List<int>& list)
 		{
 			std::string result = "";
 
@@ -26,19 +26,19 @@ namespace ListUnitTests
 	public:
 		TEST_METHOD(CTOR)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 		}
 
 		TEST_METHOD(CCTOR)
 		{
-			List<int> list1;
+			DataStructure::List<int> list1;
 
 			list1.pushBack(10);
 			list1.pushBack(20);
 			list1.pushBack(30);
 			list1.pushBack(40);
 
-			List<int> list2(list1);
+			DataStructure::List<int> list2(list1);
 
 			list1.popBack();
 
@@ -47,16 +47,16 @@ namespace ListUnitTests
 			Assert::AreEqual(expected, actual, L"", LINE_INFO());
 		}
 
-		TEST_METHOD(operatorEqualTest)
+		TEST_METHOD(operatorAssignmentTest)
 		{
-			List<int> list1;
+			DataStructure::List<int> list1;
 
 			list1.pushBack(10);
 			list1.pushBack(20);
 			list1.pushBack(30);
 			list1.pushBack(40);
 
-			List<int> list2;
+			DataStructure::List<int> list2;
 
 			list2 = list1;
 
@@ -67,7 +67,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(sizeTest01)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			const size_t expected = 0;
 			const size_t actual = list.size();
@@ -76,7 +76,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(sizeTest02)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			list.pushBack(10);
 			list.pushBack(20);
@@ -90,7 +90,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(pushBackTest)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			list.pushBack(10);
 			list.pushBack(20);
@@ -104,7 +104,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(popBackTest)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			list.pushBack(10);
 			list.pushBack(20);
@@ -120,7 +120,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(pushFrontTest)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			list.pushFront(10);
 			list.pushFront(20);
@@ -134,7 +134,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(popFrontTest)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			list.pushFront(10);
 			list.pushFront(20);
@@ -150,7 +150,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(frontTest)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			list.pushBack(10);
 			list.pushBack(20);
@@ -164,7 +164,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(backTest)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			list.pushBack(10);
 			list.pushBack(20);
@@ -178,7 +178,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(isEmptyTest)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			const bool expected = true;
 			const bool actual = list.empty();
@@ -187,7 +187,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(isNotEmptyTest)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			list.pushBack(10);
 
@@ -198,7 +198,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(beginTest)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			list.pushBack(10);
 			list.pushBack(20);
@@ -212,7 +212,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(endTest)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			list.pushBack(10);
 			list.pushBack(20);
@@ -226,7 +226,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(insertTest)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			list.pushBack(10);
 			list.pushBack(20);
@@ -242,7 +242,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(eraseTest)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			list.pushBack(10);
 			list.pushBack(20);
@@ -256,9 +256,57 @@ namespace ListUnitTests
 			Assert::AreEqual(expected, actual, L"", LINE_INFO());
 		}
 
+		TEST_METHOD(preIncrementTest)
+		{
+			DataStructure::List<int> list;
+
+			list.pushBack(10);
+			list.pushBack(20);
+
+			const int expected = 20;
+			const int actual = *(++list.begin());
+			Assert::AreEqual(expected, actual, L"", LINE_INFO());
+		}
+
+		TEST_METHOD(postIncrementTest)
+		{
+			DataStructure::List<int> list;
+
+			list.pushBack(10);
+			list.pushBack(20);
+
+			const int expected = 10;
+			const int actual = *(list.begin()++);
+			Assert::AreEqual(expected, actual, L"", LINE_INFO());
+		}
+
+		TEST_METHOD(preDecrementTest)
+		{
+			DataStructure::List<int> list;
+
+			list.pushBack(10);
+			list.pushBack(20);
+
+			const int expected = 20;
+			const int actual = *(--list.end());
+			Assert::AreEqual(expected, actual, L"", LINE_INFO());
+		}
+
+		TEST_METHOD(postDecrementTest)
+		{
+			DataStructure::List<int> list;
+
+			list.pushBack(10);
+			list.pushBack(20);
+
+			const int expected = 10;
+			const int actual = *(list.end()--);
+			Assert::AreEqual(expected, actual, L"", LINE_INFO());
+		}
+
 		TEST_METHOD(underflowErrorTest01)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			try
 			{
@@ -266,7 +314,7 @@ namespace ListUnitTests
 			}
 			catch (std::underflow_error& e)
 			{
-				const std::string expected("Stack is Empty!");
+				const std::string expected("List is Empty!");
 				const std::string actual(e.what());
 				Assert::AreEqual(expected, actual, L"", LINE_INFO());
 			}
@@ -274,7 +322,7 @@ namespace ListUnitTests
 
 		TEST_METHOD(underflowErrorTest02)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			try
 			{
@@ -282,7 +330,7 @@ namespace ListUnitTests
 			}
 			catch (std::underflow_error& e)
 			{
-				const std::string expected("Stack is Empty!");
+				const std::string expected("List is Empty!");
 				const std::string actual(e.what());
 				Assert::AreEqual(expected, actual, L"", LINE_INFO());
 			}
@@ -290,15 +338,15 @@ namespace ListUnitTests
 
 		TEST_METHOD(underflowErrorTest03)
 		{
-			List<int> list;
+			DataStructure::List<int> list;
 
 			try
 			{
-				//list.erase(list.begin());
+				list.erase(list.cbegin());
 			}
 			catch (std::underflow_error& e)
 			{
-				const std::string expected("Stack is Empty!");
+				const std::string expected("List is Empty!");
 				const std::string actual(e.what());
 				Assert::AreEqual(expected, actual, L"", LINE_INFO());
 			}
